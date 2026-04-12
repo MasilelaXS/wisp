@@ -14,22 +14,25 @@ export async function fetchElevationProfile(
   pointA: LatLng,
   pointB: LatLng,
   numSamples = 100,
+  signal?: AbortSignal,
 ): Promise<ElevationPoint[]> {
-  const locations = `${pointA.lat},${pointA.lng}|${pointB.lat},${pointB.lng}`;
-  const url = `${OPEN_TOPO_API}?locations=${locations}&samples=${numSamples}&interpolation=bilinear`;
-
-  const response = await fetch(url);
-  if (!response.ok) throw new Error(`Elevation API error: ${response.status}`);
-
-  const data = await response.json();
-  if (data.status !== 'OK') throw new Error(`Elevation API returned status: ${data.status}`);
+  // Generate intermediate points along the path
+  const locations: LatLng[] = [];
+  for (let i = 0; i < numSamples; i++) {
+    const fraction = i / (numSamples - 1);
+    locations.push({
+      lat: pointA.lat + (pointB.lat - pointA.lat) * fraction,
+      lng: pointA.lng + (pointB.lng - pointA.lng) * fraction,
+    });
+  }
 
   const totalDistance = haversineDistance(pointA, pointB);
+  const elevations = await fetchBatchElevations(locations, signal);
 
-  return data.results.map((result: any, i: number) => ({
-    lat: result.location.lat,
-    lng: result.location.lng,
-    elevation: result.elevation ?? 0,
+  return elevations.map((elev, i) => ({
+    lat: locations[i].lat,
+    lng: locations[i].lng,
+    elevation: elev,
     distance: (i / (numSamples - 1)) * totalDistance,
   }));
 }
