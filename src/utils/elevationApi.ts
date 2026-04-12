@@ -2,7 +2,7 @@ import type { LatLng, ElevationPoint } from '../types';
 
 const OPEN_TOPO_API = import.meta.env.DEV
   ? '/api/topo/v1/srtm30m'
-  : 'https://api.opentopodata.org/v1/srtm30m';
+  : 'https://corsproxy.io/?url=' + encodeURIComponent('https://api.opentopodata.org/v1/srtm30m');
 const RATE_LIMIT_MS = 1100;
 const BATCH_SIZE = 100;
 
