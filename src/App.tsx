@@ -19,6 +19,10 @@ function isMobileViewport() {
   return typeof window !== 'undefined' && window.innerWidth <= MOBILE_BREAKPOINT;
 }
 
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
+}
+
 function App() {
   const [clientPoint, setClientPoint] = useState<LatLng | null>(null);
   const [clientHeight, setClientHeight] = useState(10);
@@ -187,10 +191,10 @@ function App() {
         setScanStatus(
           `Scan complete — ${inRangeTowers.length} towers checked`
         );
-      } catch (err: any) {
-        if (err.name === 'AbortError') return;
+      } catch (err: unknown) {
+        if (err instanceof DOMException && err.name === 'AbortError') return;
         console.error('Scan failed:', err);
-        setError(err.message || 'Scan failed. Try again.');
+        setError(getErrorMessage(err, 'Scan failed. Try again.'));
         setScanStatus('Scan failed');
       } finally {
         setIsScanning(false);
@@ -239,9 +243,9 @@ function App() {
           frequencyGHz
         );
         setDetailedAnalysis(result);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Detail analysis failed:', err);
-        setError(err.message || 'Failed to load path details.');
+        setError(getErrorMessage(err, 'Failed to load path details.'));
       } finally {
         setIsLoadingDetail(false);
       }

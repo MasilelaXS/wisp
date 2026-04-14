@@ -152,7 +152,7 @@ export default function Sidebar({
     <div className="sidebar-content">
       <div className="sidebar-header">
         <div className="brand">
-          <img src="/logo-clean.png" alt="CTECG" className="brand-logo" />
+          <img src="./logo-clean.png" alt="CTECG" className="brand-logo" />
           <div>
             <h2>CTECG LOS</h2>
             <p className="subtitle">Line-of-Sight Analyzer</p>

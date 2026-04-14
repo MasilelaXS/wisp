@@ -13,7 +13,10 @@ import 'leaflet/dist/leaflet.css';
 import type { Tower, LatLng, ScanResult } from '../types';
 
 // Fix default marker icons for bundlers
-delete (L.Icon.Default.prototype as any)._getIconUrl;
+const defaultIconPrototype = L.Icon.Default.prototype as typeof L.Icon.Default.prototype & {
+  _getIconUrl?: unknown;
+};
+delete defaultIconPrototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
     'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',

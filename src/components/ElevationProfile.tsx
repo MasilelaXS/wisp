@@ -10,9 +10,11 @@ import {
 } from 'recharts';
 import type { PathAnalysisResult } from '../types';
 
+type TooltipPoint = PathAnalysisResult['pathPoints'][number];
+
 interface CustomTooltipProps {
   active?: boolean;
-  payload?: any[];
+  payload?: Array<{ payload: TooltipPoint }>;
 }
 
 function CustomTooltip({ active, payload }: CustomTooltipProps) {
