@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import towers from './data/towers';
 import TowerMap from './components/TowerMap';
 import Sidebar from './components/Sidebar';
@@ -25,6 +25,9 @@ function getErrorMessage(error: unknown, fallback: string) {
 
 function App() {
   const [clientPoint, setClientPoint] = useState<LatLng | null>(null);
+  const [currentLocation, setCurrentLocation] = useState<LatLng | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
+  const [locationLocked, setLocationLocked] = useState(true);
   const [clientHeight, setClientHeight] = useState(10);
   const [frequencyGHz, setFrequencyGHz] = useState(5.8);
   const [maxRange, setMaxRange] = useState(35);
@@ -203,16 +206,71 @@ function App() {
     [clientHeight, frequencyGHz, maxRange]
   );
 
-  const handleMapClick = useCallback(
-    (latlng: { lat: number; lng: number }) => {
-      const point: LatLng = { lat: latlng.lat, lng: latlng.lng };
+  const applyClientPoint = useCallback(
+    (point: LatLng) => {
       setClientPoint(point);
-      if (!isMobileViewport()) {
+      if (isMobileViewport()) {
+        setSidebarOpen(false);
+      } else {
         setSidebarOpen(true);
       }
       startScan(point);
     },
     [startScan]
+  );
+
+  const requestCurrentLocation = useCallback(
+    (setAsClientPoint = false) => {
+      if (!navigator.geolocation) {
+        setError('Geolocation is not supported on this device/browser.');
+        return;
+      }
+
+      setIsLocating(true);
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const point: LatLng = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          };
+
+          setCurrentLocation(point);
+          setError(null);
+
+          if (setAsClientPoint) {
+            applyClientPoint(point);
+          }
+
+          setIsLocating(false);
+        },
+        () => {
+          setIsLocating(false);
+          setError('Unable to read your current location.');
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 15000,
+          maximumAge: 120000,
+        }
+      );
+    },
+    [applyClientPoint]
+  );
+
+  useEffect(() => {
+    requestCurrentLocation(true);
+  }, [requestCurrentLocation]);
+
+  const handleMapClick = useCallback(
+    (latlng: { lat: number; lng: number }) => {
+      if (locationLocked) {
+        return;
+      }
+
+      const point: LatLng = { lat: latlng.lat, lng: latlng.lng };
+      applyClientPoint(point);
+    },
+    [applyClientPoint, locationLocked]
   );
 
   const handleSelectTower = useCallback(
@@ -279,16 +337,23 @@ function App() {
   const handleGotoPaste = useCallback(
     (lat: number, lng: number) => {
       const point: LatLng = { lat, lng };
-      setClientPoint(point);
-      if (isMobileViewport()) {
-        setSidebarOpen(false);
-      } else {
-        setSidebarOpen(true);
-      }
-      startScan(point);
+      applyClientPoint(point);
     },
-    [startScan]
+    [applyClientPoint]
   );
+
+  const handleUseCurrentLocation = useCallback(() => {
+    if (currentLocation) {
+      applyClientPoint(currentLocation);
+      return;
+    }
+
+    requestCurrentLocation(true);
+  }, [applyClientPoint, currentLocation, requestCurrentLocation]);
+
+  const handleToggleLocationLock = useCallback(() => {
+    setLocationLocked((locked) => !locked);
+  }, []);
 
   return (
     <div className="app">
@@ -326,6 +391,11 @@ function App() {
           onClear={handleClear}
           onRescan={handleRescan}
           onGotoPaste={handleGotoPaste}
+          onUseCurrentLocation={handleUseCurrentLocation}
+          hasCurrentLocation={!!currentLocation}
+          isLocating={isLocating}
+          locationLocked={locationLocked}
+          onToggleLocationLock={handleToggleLocationLock}
           onCloseMenu={() => setSidebarOpen(false)}
         />
       </div>

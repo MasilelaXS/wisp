@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import {
   MapContainer,
   TileLayer,
@@ -83,8 +83,19 @@ interface MapClickHandlerProps {
 }
 
 function MapClickHandler({ onMapClick }: MapClickHandlerProps) {
+  const suppressClickUntilRef = useRef(0);
+
   useMapEvents({
+    movestart() {
+      suppressClickUntilRef.current = Date.now() + 350;
+    },
+    zoomstart() {
+      suppressClickUntilRef.current = Date.now() + 350;
+    },
     click(e) {
+      if (Date.now() < suppressClickUntilRef.current) {
+        return;
+      }
       onMapClick(e.latlng);
     },
   });

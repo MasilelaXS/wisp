@@ -148,6 +148,45 @@
   margin-top: 4px;
 }
 
+.quick-actions-section {
+  padding: 10px 16px;
+  border-bottom: 1px solid #334155;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.btn-action {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid #475569;
+  background: #0f172a;
+  color: #e2e8f0;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-action:hover:not(:disabled) {
+  background: #1f2937;
+}
+
+.btn-action:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-action.locked {
+  border-color: #22c55e;
+  color: #22c55e;
+}
+
+.btn-action.unlocked {
+  border-color: #f97316;
+  color: #f97316;
+}
+
 /* Settings */
 .settings-section {
   padding: 10px 16px;

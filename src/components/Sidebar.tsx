@@ -17,6 +17,11 @@ interface SidebarProps {
   onClear: () => void;
   onRescan: () => void;
   onGotoPaste: (lat: number, lng: number) => void;
+  onUseCurrentLocation: () => void;
+  hasCurrentLocation: boolean;
+  isLocating: boolean;
+  locationLocked: boolean;
+  onToggleLocationLock: () => void;
   onCloseMenu: () => void;
 }
 
@@ -77,6 +82,11 @@ export default function Sidebar({
   onClear,
   onRescan,
   onGotoPaste,
+  onUseCurrentLocation,
+  hasCurrentLocation,
+  isLocating,
+  locationLocked,
+  onToggleLocationLock,
   onCloseMenu,
 }: SidebarProps) {
   const [search, setSearch] = useState('');
@@ -186,6 +196,28 @@ export default function Sidebar({
           </button>
         </div>
         {gpsError && <div className="gps-error">{gpsError}</div>}
+      </div>
+
+      <div className="quick-actions-section">
+        <button
+          className={`btn-action ${locationLocked ? 'locked' : 'unlocked'}`}
+          onClick={onToggleLocationLock}
+          title="Lock prevents accidental location changes while panning/zooming"
+        >
+          {locationLocked ? 'Unlock Map Click' : 'Lock Map Click'}
+        </button>
+        <button
+          className="btn-action"
+          onClick={onUseCurrentLocation}
+          disabled={isLocating}
+          title={hasCurrentLocation ? 'Set current GPS location as client point' : 'Request current GPS location'}
+        >
+          {isLocating
+            ? 'Locating...'
+            : hasCurrentLocation
+              ? 'Use Current Location'
+              : 'Get Current Location'}
+        </button>
       </div>
 
       {/* Settings */}
